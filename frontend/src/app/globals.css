@@ -1,0 +1,37 @@
+@import "tailwindcss";
+
+/* 토스증권 느낌의 다크 고정 테마 */
+:root {
+  --background: #101014;
+  --foreground: #f2f4f6;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  /* 한국 증시 관례: 상승=빨강, 하락=파랑 (토스 톤) */
+  --color-up: #f04452;
+  --color-down: #3182f6;
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  /* 한글은 시스템 고딕 계열로 표시 (Windows: 맑은 고딕, Mac: Apple SD Gothic Neo) */
+  font-family: var(--font-geist-sans), -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", "Segoe UI", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 가격이 바뀔 때 잠깐 배경이 색을 띠었다가 사라지는 "틱" 효과 */
+@keyframes tick-flash-up {
+  from { background-color: rgb(240 68 82 / 0.28); }
+  to { background-color: transparent; }
+}
+@keyframes tick-flash-down {
+  from { background-color: rgb(49 130 246 / 0.28); }
+  to { background-color: transparent; }
+}
+.tick-flash-up { animation: tick-flash-up 700ms ease-out; }
+.tick-flash-down { animation: tick-flash-down 700ms ease-out; }

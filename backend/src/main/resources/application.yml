@@ -1,0 +1,47 @@
+spring:
+  application:
+    name: ticklock
+  task:
+    scheduling:
+      # @Scheduled 작업은 기본이 "스레드 1개"다. 시세 생성(100ms), 브라우저 전송(100ms), DB 배치 저장(1s)이
+      # 한 스레드를 나눠 쓰면 DB 저장이 조금만 느려져도 시세 생성/전송이 같이 멈춘다. 그래서 여러 개로 늘린다.
+      pool:
+        size: 4
+  datasource:
+    # reWriteBatchedInserts=true: 배치 INSERT를 "다중 행 INSERT 한 문장"으로 합쳐 보내 훨씬 빠르게 한다
+    url: jdbc:postgresql://localhost:5432/ticklock?reWriteBatchedInserts=true
+    username: ticklock
+    password: ticklock
+  jpa:
+    hibernate:
+      # 스키마는 Flyway가 관리한다. Hibernate는 엔티티가 테이블과 맞는지 "검증만" 한다.
+      ddl-auto: validate
+    open-in-view: false   # 뷰 렌더링까지 DB 커넥션을 쥐고 있는 기본 동작을 끈다 (커넥션 고갈 방지)
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+ticklock:
+  execution:
+    # safe  = Redisson 락 + DB 조건부 UPDATE (기본값)
+    # naive = 락 없는 취약한 체결기 (레이스 컨디션 재현용). 환경변수 EXECUTION_MODE=naive 로도 바꿀 수 있다.
+    mode: safe
+    threads: 8
+  tick:
+    storage:
+      # batch  = 메모리에 모았다가 1초마다 한꺼번에 INSERT (기본값)
+      # direct = 틱마다 바로 INSERT (성능 비교용 나쁜 예). 환경변수 TICK_STORAGE_MODE=direct 로도 바꿀 수 있다.
+      mode: batch
+    retention-minutes: 10   # 시세 로그 보관 기간. 초당 1,000건이라 정하지 않으면 디스크가 빠르게 찬다
+  demo:
+    initial-balance: 100000000   # V2__seed.sql의 데모 지갑 초기 잔액. 정합성 검사의 기준값
+  cors:
+    # 쉼표로 여러 개 허용 가능 (예: 배포 도메인 추가)
+    allowed-origins: http://localhost:3000
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,metrics   # metrics: /actuator/metrics/{이름} 으로 시세 파이프라인 지표 조회
