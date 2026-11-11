@@ -7,6 +7,7 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -64,7 +65,11 @@ public class OrderController {
 
     @GetMapping
     public List<OrderView> list() {
-        return orderService.list().stream().map(this::toView).toList();
+        List<OrderView> views = new ArrayList<>();
+        for (TriggerOrder order : orderService.list()) {
+            views.add(toView(order));
+        }
+        return views;
     }
 
     @DeleteMapping("/{id}")

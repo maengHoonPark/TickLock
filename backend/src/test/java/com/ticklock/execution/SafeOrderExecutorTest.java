@@ -154,6 +154,12 @@ class SafeOrderExecutorTest {
     }
 
     private static long count(List<ExecutionResult> results, Class<? extends ExecutionResult> type) {
-        return results.stream().filter(type::isInstance).count();
+        long count = 0;
+        for (ExecutionResult result : results) {
+            if (type.isInstance(result)) {
+                count++;
+            }
+        }
+        return count;
     }
 }

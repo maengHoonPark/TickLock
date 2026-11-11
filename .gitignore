@@ -12,6 +12,9 @@ node_modules/
 
 # IDE / OS
 .idea/
-.vscode/
+# VS Code: 추천 확장 목록(extensions.json)만 공유하고, 내 PC의 JDK 경로가 들어가는 settings.json은 올리지 않는다
+.vscode/*
+!.vscode/extensions.json
+backend/.vscode/
 *.iml
 .DS_Store

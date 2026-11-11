@@ -4,6 +4,7 @@ import com.ticklock.common.ApiException;
 import com.ticklock.tick.StockCatalog;
 import com.ticklock.wallet.DemoAccount;
 import java.util.List;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -50,9 +51,12 @@ public class OrderService {
         }
         DemoAccount.Identity me = demoAccount.identity();
 
-        return orderRepository.findByUserIdAndRequestKey(me.userId(), command.requestKey())
-                .map(existing -> ensureSameContent(existing, command))
-                .orElseGet(() -> insertOrFindExisting(me, command));
+        // 같은 키의 주문이 이미 있으면(재시도) 새로 만들지 않고 그 주문을 돌려준다
+        Optional<TriggerOrder> existing = orderRepository.findByUserIdAndRequestKey(me.userId(), command.requestKey());
+        if (existing.isPresent()) {
+            return ensureSameContent(existing.get(), command);
+        }
+        return insertOrFindExisting(me, command);
     }
 
     private TriggerOrder insertOrFindExisting(DemoAccount.Identity me, CreateCommand command) {
@@ -67,10 +71,12 @@ public class OrderService {
         } catch (DataIntegrityViolationException e) {
             // 거의 동시에 같은 키의 요청 2건이 들어와 둘 다 "없음"을 본 경우. UNIQUE 제약이 한 건만 통과시킨다.
             log.info("동시에 들어온 중복 주문 요청을 감지해 기존 주문을 돌려줍니다. key={}", command.requestKey());
-            TriggerOrder existing = orderRepository
-                    .findByUserIdAndRequestKey(me.userId(), command.requestKey())
-                    .orElseThrow(() -> e); // 중복 키가 원인이 아니었다면(다른 제약 위반) 원래 예외를 그대로 던진다
-            return ensureSameContent(existing, command);
+            Optional<TriggerOrder> existing =
+                    orderRepository.findByUserIdAndRequestKey(me.userId(), command.requestKey());
+            if (existing.isEmpty()) {
+                throw e; // 중복 키가 원인이 아니었다면(다른 제약 위반) 원래 예외를 그대로 던진다
+            }
+            return ensureSameContent(existing.get(), command);
         }
     }
 

@@ -3,6 +3,7 @@ package com.ticklock.tick;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,7 +44,7 @@ public class TickGenerator {
     private long sequence = 0;
 
     public TickGenerator(StockRepository stockRepository, StringRedisTemplate redis, ObjectMapper objectMapper,
-                         TickMetrics metrics) {
+                        TickMetrics metrics) {
         this.stockRepository = stockRepository;
         this.redis = redis;
         this.objectMapper = objectMapper;
@@ -91,8 +92,12 @@ public class TickGenerator {
         if (stocks.isEmpty()) {
             return false;
         }
-        stocks.forEach(stock -> lastPrices.put(stock.getSymbol(), stock.getBasePrice()));
-        symbols = stocks.stream().map(Stock::getSymbol).toList();
+        List<String> loadedSymbols = new ArrayList<>();
+        for (Stock stock : stocks) {
+            lastPrices.put(stock.getSymbol(), stock.getBasePrice());
+            loadedSymbols.add(stock.getSymbol());
+        }
+        symbols = loadedSymbols;
         return true;
     }
 }
