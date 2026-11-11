@@ -1,6 +1,8 @@
 package com.ticklock.tick;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -31,14 +33,14 @@ public class StreamController {
 
     @GetMapping("/stocks")
     public List<StockView> stocks() {
-        return stockCatalog.all().stream()
-                .map(stock -> new StockView(
-                        stock.getSymbol(),
-                        stock.getName(),
-                        // 캐시에 아직 시세가 없으면(서버 막 시작) 기준가를 보여준다
-                        priceCache.find(stock.getSymbol()).map(Tick::price).orElse(stock.getBasePrice()),
-                        stock.getBasePrice()))
-                .toList();
+        List<StockView> views = new ArrayList<>();
+        for (Stock stock : stockCatalog.all()) {
+            // 캐시에 아직 시세가 없으면(서버 막 시작) 기준가를 보여준다
+            Optional<Tick> latest = priceCache.find(stock.getSymbol());
+            long price = latest.isPresent() ? latest.get().price() : stock.getBasePrice();
+            views.add(new StockView(stock.getSymbol(), stock.getName(), price, stock.getBasePrice()));
+        }
+        return views;
     }
 
     /** 브라우저의 EventSource가 연결하는 곳. 연결을 끊지 않고 계속 열어두며 시세를 흘려보낸다. */

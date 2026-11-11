@@ -1,5 +1,6 @@
 package com.ticklock.wallet;
 
+import java.util.Optional;
 import org.springframework.stereotype.Component;
 
 /**
@@ -41,9 +42,14 @@ public class DemoAccount {
 
     /** 최신 잔액이 필요할 때 사용한다. 매번 DB에서 읽는다. */
     public Wallet wallet() {
-        AppUser user = userRepository.findByEmail(EMAIL)
-                .orElseThrow(() -> new IllegalStateException("데모 유저가 없습니다. 시드 마이그레이션을 확인하세요."));
-        return walletRepository.findByUserId(user.getId())
-                .orElseThrow(() -> new IllegalStateException("데모 유저의 지갑이 없습니다."));
+        Optional<AppUser> user = userRepository.findByEmail(EMAIL);
+        if (user.isEmpty()) {
+            throw new IllegalStateException("데모 유저가 없습니다. 시드 마이그레이션을 확인하세요.");
+        }
+        Optional<Wallet> wallet = walletRepository.findByUserId(user.get().getId());
+        if (wallet.isEmpty()) {
+            throw new IllegalStateException("데모 유저의 지갑이 없습니다.");
+        }
+        return wallet.get();
     }
 }

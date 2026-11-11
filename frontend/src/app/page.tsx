@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Suspense } from "react";
 import { Dashboard } from "@/components/Dashboard";
 import { ExecutionList } from "@/components/ExecutionList";
@@ -52,6 +53,10 @@ export default function Home() {
         />
         <p className="mt-10 px-2 text-center text-xs leading-relaxed text-zinc-600">
           모든 시세는 가상으로 만든 값이에요. 종목 로고는 각 기업의 상표이며 Wikimedia Commons의 파일을 사용했어요.
+          <br />
+          <Link href="/debug" className="text-zinc-500 underline hover:text-zinc-300">
+            개발용 관찰 화면 열기
+          </Link>
         </p>
       </main>
     </>

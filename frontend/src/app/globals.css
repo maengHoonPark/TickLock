@@ -33,5 +33,11 @@ body {
   from { background-color: rgb(49 130 246 / 0.28); }
   to { background-color: transparent; }
 }
+/* 개발용 관찰 화면: 값이 바뀌거나 새 행이 생겼을 때 잠깐 노란빛으로 반짝인다 */
+@keyframes value-flash {
+  from { background-color: rgb(250 204 21 / 0.35); }
+  to { background-color: transparent; }
+}
+.value-flash { animation: value-flash 1200ms ease-out; }
 .tick-flash-up { animation: tick-flash-up 700ms ease-out; }
 .tick-flash-down { animation: tick-flash-down 700ms ease-out; }

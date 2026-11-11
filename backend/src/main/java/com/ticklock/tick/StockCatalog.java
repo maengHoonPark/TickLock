@@ -4,8 +4,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
 
 /**
@@ -46,9 +44,11 @@ public class StockCatalog {
         if (loaded == null) {
             // 동시에 여러 스레드가 처음 호출해도 결과는 같다(같은 DB 내용). 한 번 더 읽는 비용만 들고 잘못되지는 않는다.
             // LinkedHashMap: DB에서 읽은 순서(= 화면에 보여줄 종목 순서)를 그대로 유지한다. 일반 HashMap은 순서가 뒤섞인다.
-            loaded = Collections.unmodifiableMap(stockRepository.findAll().stream()
-                    .collect(Collectors.toMap(Stock::getSymbol, Function.identity(), (first, second) -> first,
-                            LinkedHashMap::new)));
+            Map<String, Stock> bySymbol = new LinkedHashMap<>();
+            for (Stock stock : stockRepository.findAll()) {
+                bySymbol.put(stock.getSymbol(), stock);
+            }
+            loaded = Collections.unmodifiableMap(bySymbol);
             stocks = loaded;
         }
         return loaded;

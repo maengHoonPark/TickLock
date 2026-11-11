@@ -37,7 +37,9 @@ public class ActiveOrderIndex {
     @EventListener(ApplicationReadyEvent.class)
     void loadFromDatabase() {
         List<TriggerOrder> active = orderRepository.findByStatus(OrderStatus.ACTIVE);
-        active.forEach(order -> add(ActiveOrder.from(order)));
+        for (TriggerOrder order : active) {
+            add(ActiveOrder.from(order));
+        }
         log.info("대기 중 주문 {}건을 메모리 인덱스에 올렸습니다.", active.size());
     }
 
@@ -53,7 +55,9 @@ public class ActiveOrderIndex {
     @Scheduled(fixedDelay = 30_000, initialDelay = 30_000)
     void reconcileWithDatabase() {
         int before = byId.size();
-        orderRepository.findByStatus(OrderStatus.ACTIVE).forEach(order -> add(ActiveOrder.from(order)));
+        for (TriggerOrder order : orderRepository.findByStatus(OrderStatus.ACTIVE)) {
+            add(ActiveOrder.from(order));
+        }
         int recovered = byId.size() - before;
         if (recovered > 0) {
             log.warn("DB에는 대기 중인데 인덱스에 없던 주문 {}건을 복구했습니다.", recovered);

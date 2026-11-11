@@ -1,6 +1,8 @@
 package com.ticklock.common;
 
+import java.util.List;
 import org.springframework.http.HttpStatus;
+import org.springframework.validation.FieldError;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -26,10 +28,11 @@ public class ApiExceptionHandler {
     /** @Valid 검증 실패. 첫 번째 위반 메시지만 보여준다. */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     ResponseEntity<ErrorBody> handleValidation(MethodArgumentNotValidException e) {
-        String message = e.getBindingResult().getFieldErrors().stream()
-                .findFirst()
-                .map(error -> error.getDefaultMessage())
-                .orElse("요청 값이 올바르지 않아요.");
+        String message = "요청 값이 올바르지 않아요.";
+        List<FieldError> errors = e.getBindingResult().getFieldErrors();
+        if (!errors.isEmpty() && errors.get(0).getDefaultMessage() != null) {
+            message = errors.get(0).getDefaultMessage();
+        }
         return ResponseEntity.badRequest().body(new ErrorBody(message));
     }
 

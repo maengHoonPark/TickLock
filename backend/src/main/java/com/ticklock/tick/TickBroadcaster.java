@@ -33,11 +33,14 @@ public class TickBroadcaster {
         SseEmitter emitter = new SseEmitter(0L); // 0 = 서버 쪽 타임아웃 없음
         emitters.add(emitter);
         // 연결이 어떤 이유로든 끝나면 목록에서 제거해야 메모리가 새지 않는다.
+        // `() -> ...` 는 "나중에 이 일이 일어나면 이 코드를 실행해 달라"고 맡기는 콜백이다 (스트림과는 별개의 문법).
         emitter.onCompletion(() -> emitters.remove(emitter));
         emitter.onTimeout(() -> emitters.remove(emitter));
         emitter.onError(error -> emitters.remove(emitter));
 
-        priceCache.snapshot().forEach(tick -> send(emitter, tick));
+        for (Tick tick : priceCache.snapshot()) {
+            send(emitter, tick);
+        }
         return emitter;
     }
 
@@ -56,14 +59,18 @@ public class TickBroadcaster {
             // remove로 꺼내오면 "꺼내기 + 비우기"가 한 번에 되어, 그 사이 들어온 새 틱을 잃지 않는다.
             Tick tick = pending.remove(symbol);
             if (tick != null) {
-                emitters.forEach(emitter -> send(emitter, tick));
+                for (SseEmitter emitter : emitters) {
+                    send(emitter, tick);
+                }
             }
         }
     }
 
     /** 체결 알림처럼 "합치지 않고 즉시" 모든 접속자에게 보내야 하는 이벤트용. */
     public void broadcast(Object event) {
-        emitters.forEach(emitter -> sendJson(emitter, event));
+        for (SseEmitter emitter : emitters) {
+            sendJson(emitter, event);
+        }
     }
 
     private void send(SseEmitter emitter, Tick tick) {

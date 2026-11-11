@@ -36,6 +36,8 @@ services:
       SPRING_DATA_REDIS_HOST: redis
       # 시세 저장 방식 전환: `TICK_STORAGE_MODE=direct docker compose up -d backend` (기본 batch)
       TICKLOCK_TICK_STORAGE_MODE: ${TICK_STORAGE_MODE:-batch}
+      # 개발용 관찰 화면(/debug)용 API를 로컬에서만 켠다. 배포 환경에서는 이 값을 넣지 않는다.
+      TICKLOCK_DEBUG_ENABLED: "true"
       # 체결 모드 전환: `EXECUTION_MODE=naive docker compose up -d backend` (기본 safe)
       TICKLOCK_EXECUTION_MODE: ${EXECUTION_MODE:-safe}
     volumes:
